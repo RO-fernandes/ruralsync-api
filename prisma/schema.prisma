@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// Tabela de Clientes (Tenants) - Separação por fazendeiro/empresa
+model Tenant {
+  id        String   @id @default(uuid())
+  nome      String
+  fazendas  Farm[]
+  users     User[]
+  createdAt DateTime @default(now())
+
+  @@map("tenants")
+}
+
+// Tabela de Fazendas
+model Farm {
+  id        String   @id @default(uuid())
+  nome      String
+  area      Float
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  animals   Animal[]
+
+  @@map("farms")
+}
+
+// Tabela de Animais (Gado)
+model Animal {
+  id        String   @id @default(uuid())
+  brinco    String
+  peso      Float
+  farmId    String
+  farm      Farm     @relation(fields: [farmId], references: [id])
+
+  @@map("animals")
+}
+
+// Tabela de Usuários (Acesso ao Sistema)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  senha     String
+  role      String   @default("USER") // ADMIN, MANAGER, WORKER
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@map("users")
+}
